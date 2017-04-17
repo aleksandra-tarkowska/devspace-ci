@@ -1,0 +1,51 @@
+version: '2'  
+services: 
+
+  gitmirror:
+    build:
+      context: ./git
+      dockerfile: Dockerfile
+      args:
+        bfver: metadata54
+        omerover: metadata53
+    volumes:
+      - ${PWD}/git/.gitconfig:/home/omero/.gitconfig
+      - ./git/.ssh:/home/omero/.ssh
+      - m2:/home/omero/.m2
+      - workspace:/home/omero/workspace
+      - src:/src
+  ci:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    environment:
+      JAVA_OPTS: "-Djava.awt.headless=true"
+    links:
+      - db
+    ports:
+      - "50000:50000"
+      - "8080:8080"
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+    extra_hosts:
+      - "dockerapi:${DOCKER_API}"
+    environment:
+      # - JENKINS_USERNAME=${JENKINS_USERNAME}
+      # - JENKINS_PASSWORD=${JENKINS_PASSWORD}
+      - JENKINS_OPTS= --argumentsRealm.passwd.${JENKINS_USERNAME}=${JENKINS_PASSWORD} --argumentsRealm.roles.${JENKINS_USERNAME}=admin
+      - "SWARM_MASTER_URL=tcp://dockerapi:4243"
+
+  db:
+    image: postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis
+
+volumes:
+  src:
+    driver: local
+  m2:
+    driver: local
+  workspace:
+    driver: local

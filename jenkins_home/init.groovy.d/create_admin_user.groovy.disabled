@@ -1,0 +1,34 @@
+// Thanks https://gist.github.com/hayderimran7/50cb1244cc1e856873a4
+import jenkins.model.*
+import hudson.security.*
+
+def instance = Jenkins.getInstance()
+
+def adminUserName = System.getenv("JENKINS_USERNAME")
+def adminPassword = System.getenv("JENKINS_PASSWORD")
+
+assert adminUserName != null : "No JENKINS_USERNAME env var provided, but required"
+assert adminPassword != null : "No JENKINS_PASSWORD env var provided, but required"
+
+def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+
+
+def _users = hudsonRealm.getAllUsers()
+users = _users.collect { it.toString() }
+if (adminUserName in users) {
+    println "Admin account '$adminUserName' already exists."
+} else {
+    // FIXME : just during debugging/initial dev, remove the password part of that log
+    println "Creating the '$adminUserName' admin user"
+
+    hudsonRealm.createAccount(adminUserName, adminPassword)
+    instance.setSecurityRealm(hudsonRealm)
+
+    def strategy = new GlobalMatrixAuthorizationStrategy()
+    strategy.add(Jenkins.ADMINISTER, "admin")
+
+    strategy.add(Jenkins.READ, "anonymous")
+    instance.setAuthorizationStrategy(strategy)
+
+    instance.save()
+}

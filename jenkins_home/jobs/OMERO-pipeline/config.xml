@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.10">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>STATUS</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>success-only</string>
+              <string>no-error</string>
+              <string>none</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>OMERO_BRANCH</name>
+          <description></description>
+          <defaultValue>metadata53</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MERGE_COMMAND</name>
+          <description></description>
+          <defaultValue>merge $OMERO_BRANCH --no-ask --reset</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PUSH_BRANCH</name>
+          <description></description>
+          <defaultValue>$OMERO_BRANCH/merge/trigger</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.29">
+    <script>
+node(&apos;ome-slave&apos;) {
+
+    //load &apos;bf.git/Jenkinsfile&apos;
+    stage(&apos;Clone git repository&apos;) {
+        checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;$OMERO_BRANCH&apos;]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &apos;src&apos;]], submoduleCfg: [], userRemoteConfigs: [[url: &apos;https://github.com/openmicroscopy/openmicroscopy.git&apos;, reference: &apos;/src/omero.git&apos;]]])
+    }
+
+    stage(&apos;Push to git repository&apos;) {
+        sh &quot;sudo pip install scc&quot;
+        sh &quot;test -e src&quot;
+        sh &quot;cd src &amp;&amp; scc $MERGE_COMMAND -S $STATUS --push $PUSH_BRANCH&quot;
+    }
+
+    stage(&apos;Install&apos;) {
+        sh &apos;&apos;&apos;sudo yum -y install python-pip python-devel 
+              sudo yum -y install python-yaml python-jinja2 python-pillow numpy scipy python-tables
+              
+              sudo yum -y install http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm
+              sudo yum -y install postgresql95
+              
+              sudo yum -y install java-1.8.0-openjdk java-1.8.0-openjdk
+              
+              sudo curl -L -o /etc/yum.repos.d/zeroc-ice-el7.repo https://zeroc.com/download/rpm/zeroc-ice-el7.repo
+              sudo yum -y install gcc-c++
+              sudo yum -y install libdb-utils
+              sudo yum -y install openssl-devel bzip2-devel expat-devel
+              sudo yum -y install ice-all-runtime ice-all-devel
+              sudo pip install &quot;zeroc-ice&gt;3.5,&lt;3.7&quot;
+
+        &apos;&apos;&apos;
+    }
+    stage(&apos;Build Artifacts&apos;) {
+        sh &apos;&apos;&apos;export PATH=/opt/texlive/bin/x86_64-linux:$PATH # for dockerfile
+            cd src &amp;&amp; source docs/hudson/OMERO.sh&apos;&apos;&apos;
+    }
+    
+    stage(&apos;Archive&apos;) {
+        archiveArtifacts &apos;src/target/*.zip,src/target/*.egg,src/target/*.log,src/target/*INFO&apos;
+    }
+
+}
+
+</script>
+    <sandbox>false</sandbox>
+  </definition>
+  <triggers/>
+</flow-definition>

@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.10">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>STATUS</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>success-only</string>
+              <string>no-error</string>
+              <string>none</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BF_BRANCH</name>
+          <description></description>
+          <defaultValue>metadata54</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MERGE_COMMAND</name>
+          <description></description>
+          <defaultValue>merge $BF_BRANCH --no-ask --reset</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PUSH_BRANCH</name>
+          <description></description>
+          <defaultValue>$BF_BRANCH/merge/trigger</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.29">
+    <script>
+node(&apos;ome-slave&apos;) {
+
+    def rtMaven = Artifactory.newMavenBuild()
+
+    //load &apos;src/Jenkinsfile&apos;
+    stage(&apos;Clone git repository&apos;) {
+        checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;$BF_BRANCH&apos;]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &apos;src&apos;]], submoduleCfg: [], userRemoteConfigs: [[url: &apos;https://github.com/openmicroscopy/bioformats.git&apos;, reference: &apos;/src/bf.git&apos;]]])
+    }
+
+    stage(&apos;Push to git repository&apos;) {
+        sh &quot;sudo pip install scc&quot;
+        sh &quot;test -e src&quot;
+        sh &quot;cd src &amp;&amp; scc $MERGE_COMMAND -S $STATUS --push $PUSH_BRANCH&quot;
+    }
+
+    stage(&apos;Build Maven&apos;) {
+        rtMaven.tool = &apos;Installer&apos;
+        rtMaven.run pom: &apos;src/pom.xml&apos;, goals: &apos;-U -DdryRun=true clean install&apos;
+    }
+
+}
+
+</script>
+    <sandbox>false</sandbox>
+  </definition>
+  <triggers/>
+</flow-definition>
