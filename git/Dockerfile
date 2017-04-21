@@ -13,6 +13,7 @@ RUN git clone --bare --depth=1 -b $omerover git://github.com/openmicroscopy/open
 ADD run.sh /run.sh
 RUN chmod a+x /run.sh
 
-# VOLUME ["/home/omero/.m2", "/home/omero/src", "/home/omero/workspace"]
+ADD .gitconfig /home/omero
+ADD .ssh /home/omero/.ssh
 
 CMD ["/run.sh"]

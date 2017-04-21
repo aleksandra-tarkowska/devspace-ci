@@ -17,11 +17,8 @@ services:
         bfver: metadata54
         omerover: metadata53
     volumes:
-      - ${PWD}/git/.gitconfig:/home/omero/.gitconfig
-      - ./git/.ssh:/home/omero/.ssh
-      - m2:/home/omero/.m2
-      - workspace:/home/omero/workspace
       - src:/src
+      - homedir:/home/omero
   ci:
     build:
       context: ./jenkins
@@ -54,7 +51,5 @@ services:
 volumes:
   src:
     driver: local
-  m2:
-    driver: local
-  workspace:
+  homedir:
     driver: local
