@@ -2,17 +2,12 @@
 <hudson.tasks.Maven_-DescriptorImpl>
   <installations>
     <hudson.tasks.Maven_-MavenInstallation>
-      <name>Default</name>
-      <home>/usr/share/maven</home>
-      <properties/>
-    </hudson.tasks.Maven_-MavenInstallation>
-    <hudson.tasks.Maven_-MavenInstallation>
-      <name>Installer</name>
+      <name>MAVEN3</name>
       <properties>
         <hudson.tools.InstallSourceProperty>
           <installers>
             <hudson.tasks.Maven_-MavenInstaller>
-              <id>3.3.3</id>
+              <id>3.5.0</id>
             </hudson.tasks.Maven_-MavenInstaller>
           </installers>
         </hudson.tools.InstallSourceProperty>

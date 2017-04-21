@@ -56,7 +56,7 @@ node(&apos;ome-slave&apos;) {
     }
 
     stage(&apos;Build Maven&apos;) {
-        rtMaven.tool = &apos;Installer&apos;
+        rtMaven.tool = &apos;MAVEN3&apos;
         rtMaven.run pom: &apos;src/pom.xml&apos;, goals: &apos;-U -DdryRun=true clean install&apos;
     }
 
