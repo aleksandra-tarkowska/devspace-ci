@@ -33,8 +33,6 @@ services:
       - "8080:8080"
     volumes:
       - ./jenkins_home:/var/jenkins_home
-    extra_hosts:
-      - "dockerapi:192.168.100.100"
     environment:
       # - JENKINS_USERNAME=${JENKINS_USERNAME}
       # - JENKINS_PASSWORD=${JENKINS_PASSWORD}

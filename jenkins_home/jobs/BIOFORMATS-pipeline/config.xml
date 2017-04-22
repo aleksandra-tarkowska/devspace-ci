@@ -40,7 +40,7 @@
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.29">
     <script>
-node(&apos;ome-slave&apos;) {
+node(&apos;bf-slave&apos;) {
 
     def rtMaven = Artifactory.newMavenBuild()
 
