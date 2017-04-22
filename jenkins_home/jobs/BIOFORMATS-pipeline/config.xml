@@ -46,7 +46,16 @@ node(&apos;ome-slave&apos;) {
 
     //load &apos;src/Jenkinsfile&apos;
     stage(&apos;Clone git repository&apos;) {
-        checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;$BF_BRANCH&apos;]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &apos;src&apos;]], submoduleCfg: [], userRemoteConfigs: [[url: &apos;https://github.com/openmicroscopy/bioformats.git&apos;, reference: &apos;/src/bf.git&apos;]]])
+        checkout([
+            $class: &apos;GitSCM&apos;,
+            branches: [[name: &apos;$BF_BRANCH&apos;]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions:
+                [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &apos;src&apos;],
+                 [$class: &apos;CloneOption&apos;, depth: 0, noTags: false, reference: &apos;&apos;, shallow: false, timeout: 20]],
+            submoduleCfg: [],
+            userRemoteConfigs: [[url: &apos;https://github.com/openmicroscopy/bioformats.git&apos;, reference: &apos;/src/bf.git&apos;]]
+        ])
     }
 
     stage(&apos;Push to git repository&apos;) {
